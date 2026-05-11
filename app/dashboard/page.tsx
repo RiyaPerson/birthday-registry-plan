@@ -21,7 +21,7 @@ export default async function DashboardPage() {
         <div>
           <h1 className="text-3xl font-bold">My Wishlists</h1>
           <p className="text-muted-foreground mt-1">
-            Create and manage your birthday wishlists
+            Create and manage your wishlists
           </p>
         </div>
         <Button asChild>

@@ -47,7 +47,7 @@ export async function POST(req: Request) {
     const result = await generateText({
       model: 'openai/gpt-5-mini',
       output: Output.object({ schema: searchResultsSchema }),
-      prompt: `You are a helpful shopping assistant. A user wants to add an item to their birthday wishlist.
+      prompt: `You are a helpful shopping assistant. A user wants to add an item to their wishlist.
 
 Their request: "${query}"
 

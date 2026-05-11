@@ -70,7 +70,7 @@ export default function SignUpPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-2xl">Create an account</CardTitle>
-              <CardDescription>Start building your birthday wishlist</CardDescription>
+              <CardDescription>Start building your wishlist</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSignUp}>

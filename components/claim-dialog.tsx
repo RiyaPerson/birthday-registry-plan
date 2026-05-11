@@ -84,7 +84,7 @@ export function ClaimDialog({
             </div>
             <h3 className="mt-4 text-xl font-semibold">Gift Claimed!</h3>
             <p className="mt-2 text-center text-muted-foreground">
-              Thank you for claiming this gift. The wishlist owner will see it&apos;s been claimed but won&apos;t know who until after their birthday.
+              Thank you for claiming this gift. The wishlist owner will see it&apos;s been claimed but won&apos;t know who until after the event.
             </p>
           </div>
         </DialogContent>
@@ -98,7 +98,7 @@ export function ClaimDialog({
         <DialogHeader>
           <DialogTitle>Claim this gift</DialogTitle>
           <DialogDescription>
-            Let them know you&apos;ve got this covered (anonymously until after their birthday)
+            Let them know you&apos;ve got this covered (anonymously)
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">

@@ -7,8 +7,8 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Wishlist - Birthday Gift Registry',
-  description: 'Create and share your birthday wishlist. Add your own links or let AI find options. Friends can claim gifts anonymously.',
+  title: 'Wishlist - Gift Registry',
+  description: 'Create and share your wishlist. Add your own links or let AI find options. Friends can claim gifts anonymously.',
   generator: 'v0.app',
   icons: {
     icon: [

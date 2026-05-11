@@ -28,10 +28,10 @@ export default function HomePage() {
         <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl text-balance">
           Create your perfect
           <br />
-          <span className="text-primary">birthday wishlist</span>
+          <span className="text-primary">wishlist</span>
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground text-pretty">
-          Share what you really want for your birthday. Add your own links or let our AI find the best options from top retailers. Friends and family can claim gifts anonymously.
+          Share what you really want. Add your own links or let our AI find the best options from top retailers. Friends and family can claim gifts anonymously.
         </p>
         <div className="mt-10 flex justify-center gap-4">
           <Button size="lg" asChild>
@@ -92,7 +92,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t py-8">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>Built with care for birthday wishes everywhere.</p>
+          <p>Built with care for wishes everywhere.</p>
         </div>
       </footer>
     </div>

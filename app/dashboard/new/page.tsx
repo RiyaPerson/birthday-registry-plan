@@ -69,7 +69,7 @@ export default function NewRegistryPage() {
         <CardHeader>
           <CardTitle>Create a New Wishlist</CardTitle>
           <CardDescription>
-            Set up your birthday wishlist to share with friends and family
+            Set up your wishlist to share with friends and family
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -78,7 +78,7 @@ export default function NewRegistryPage() {
               <Label htmlFor="title">Wishlist Title</Label>
               <Input
                 id="title"
-                placeholder="My 30th Birthday Wishlist"
+                placeholder="My Wishlist"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
@@ -86,7 +86,7 @@ export default function NewRegistryPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="eventDate">Birthday Date</Label>
+              <Label htmlFor="eventDate">Event Date</Label>
               <Input
                 id="eventDate"
                 type="date"
