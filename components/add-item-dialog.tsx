@@ -32,6 +32,7 @@ export function AddItemDialog({ registryId }: AddItemDialogProps) {
   const [isSearching, setIsSearching] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<any>(null)
+  const [searchError, setSearchError] = useState('')
   const router = useRouter()
 
   const handleAddManual = async () => {
@@ -56,6 +57,7 @@ export function AddItemDialog({ registryId }: AddItemDialogProps) {
 
   const handleAISearch = async () => {
     if (!searchQuery.trim()) return
+    setSearchError('')
     setIsSearching(true)
 
     try {
@@ -68,12 +70,21 @@ export function AddItemDialog({ registryId }: AddItemDialogProps) {
         }),
       })
 
-      if (response.ok) {
-        const data = await response.json()
+      const data = await response.json()
+
+      if (!response.ok) {
+        setSearchError(data?.error || 'Search failed. Please try again.')
+        setSearchResults(null)
+      } else if (!data?.products || data.products.length === 0) {
+        setSearchError('No product options were found. Try a more specific search.')
+        setSearchResults(null)
+      } else {
         setSearchResults(data)
       }
     } catch (error) {
       console.error('Search failed:', error)
+      setSearchError('Search failed. Please try again.')
+      setSearchResults(null)
     }
 
     setIsSearching(false)
@@ -213,14 +224,25 @@ export function AddItemDialog({ registryId }: AddItemDialogProps) {
           <TabsContent value="ai" className="space-y-4 mt-4">
             {searchResults ? (
               <>
-                <div className="mb-4">
+                <div className="mb-4 space-y-2">
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => setSearchResults(null)}
+                    onClick={() => {
+                      setSearchResults(null)
+                      setSearchError('')
+                    }}
                   >
                     ← New Search
                   </Button>
+                  <div>
+                    <p className="text-sm font-semibold">{searchResults.item_title}</p>
+                    {searchResults.item_description && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {searchResults.item_description}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <div className="space-y-3 max-h-[400px] overflow-y-auto">
                   <p className="text-sm font-medium text-muted-foreground mb-3">
@@ -256,10 +278,18 @@ export function AddItemDialog({ registryId }: AddItemDialogProps) {
                     id="searchQuery"
                     placeholder="e.g., Wireless noise-cancelling headphones under $400, preferably Sony or Bose..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value)
+                      setSearchError('')
+                    }}
                     rows={3}
                   />
                 </div>
+                {searchError && (
+                  <p className="text-sm text-destructive">
+                    {searchError}
+                  </p>
+                )}
                 <p className="text-sm text-muted-foreground">
                   Our AI will search online retailers to find matching products with prices and links.
                 </p>

@@ -51,6 +51,7 @@ export interface GiftClaim {
   quantity: number
   claimer_name: string | null
   claimer_email: string | null
+  unclaim_code: string | null
   message: string | null
   claimed_at: string
 }
