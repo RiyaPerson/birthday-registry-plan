@@ -42,24 +42,7 @@ export function PublicItemCard({ item, registrySlug, claimed }: PublicItemCardPr
     <>
       <Card className={claimed ? 'opacity-60' : ''}>
         <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              {item.image_url && (
-                <div className="mb-3">
-                  <img
-                    src={item.image_url}
-                    alt={item.title}
-                    className="w-full h-32 object-cover rounded-md"
-                    onError={(e) => {
-                      // Hide image if it fails to load
-                      e.currentTarget.style.display = 'none'
-                    }}
-                  />
-                </div>
-              )}
-              <CardTitle className="text-lg line-clamp-2">{item.title}</CardTitle>
-            </div>
-          </div>
+          <CardTitle className="text-lg line-clamp-2">{item.title}</CardTitle>
         </CardHeader>
         <CardContent className="pb-3">
           {item.description && (
