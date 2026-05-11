@@ -71,38 +71,12 @@ Focus on finding products that best match the user's preferences for brand, pric
       return Response.json({ error: 'No results found' }, { status: 404 })
     }
 
-    // Create the registry item
-    const { data: item, error: itemError } = await supabase
-      .from('registry_items')
-      .insert({
-        registry_id: registryId,
-        title: searchResults.item_title,
-        description: searchResults.item_description,
-        desired_quantity: 1,
-      })
-      .select()
-      .single()
-
-    if (itemError || !item) {
-      return Response.json({ error: 'Failed to create item' }, { status: 500 })
-    }
-
-    // Add product options
-    if (searchResults.products && searchResults.products.length > 0) {
-      const productOptions = searchResults.products.map((p) => ({
-        item_id: item.id,
-        title: p.title,
-        url: p.url,
-        price_cents: p.price_cents,
-        retailer: p.retailer,
-        image_url: p.image_url,
-        currency: 'USD',
-      }))
-
-      await supabase.from('product_options').insert(productOptions)
-    }
-
-    return Response.json({ success: true, item })
+    // Return results without creating item - let client decide which product to add
+    return Response.json({
+      item_title: searchResults.item_title,
+      item_description: searchResults.item_description,
+      products: searchResults.products || [],
+    })
   } catch (error) {
     console.error('Product search error:', error)
     return Response.json({ error: 'Search failed' }, { status: 500 })
