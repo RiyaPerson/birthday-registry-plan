@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -17,14 +16,6 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Check, Copy } from 'lucide-react'
 import type { RegistryItemWithDetails } from '@/lib/types'
-
-function generateUnclaimCode() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-  const values = crypto.getRandomValues(new Uint8Array(8))
-  return Array.from(values)
-    .map((value) => chars[value % chars.length])
-    .join('')
-}
 
 interface ClaimDialogProps {
   open: boolean
@@ -56,26 +47,33 @@ export function ClaimDialog({
     e.preventDefault()
 
     setFormError('')
-    const code = generateUnclaimCode()
-
     setIsLoading(true)
 
-    const supabase = createClient()
+    try {
+      const response = await fetch('/api/claim-gift', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          itemId: item.id,
+          productOptionId,
+          quantity: parseInt(quantity) || 1,
+          claimerName: name || null,
+          message: message || null,
+        }),
+      })
 
-    const { error } = await supabase.from('gift_claims').insert({
-      item_id: item.id,
-      product_option_id: productOptionId,
-      quantity: parseInt(quantity) || 1,
-      claimer_name: name || null,
-      claimer_email: null,
-      unclaim_code: code,
-      message: message || null,
-    })
+      const data = await response.json()
 
-    if (!error) {
-      setUnclaimCode(code)
-      setIsSuccess(true)
-    } else {
+      if (!response.ok) {
+        setFormError(data?.error || 'Failed to claim gift. Please try again.')
+      } else if (data?.success && data?.unclaimCode) {
+        setUnclaimCode(data.unclaimCode)
+        setIsSuccess(true)
+      } else {
+        setFormError('Failed to claim gift. Please try again.')
+      }
+    } catch (error) {
+      console.error('Claim error:', error)
       setFormError('Failed to claim gift. Please try again.')
     }
 
