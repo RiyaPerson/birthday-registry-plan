@@ -36,6 +36,13 @@ export function ItemCard({ item, isOwner, onClaim }: ItemCardProps) {
     router.refresh()
   }
 
+  const handleUnclaim = async () => {
+    setIsDeleting(true)
+    const supabase = createClient()
+    await supabase.from('gift_claims').delete().eq('item_id', item.id)
+    router.refresh()
+  }
+
   const lowestPrice = item.product_options.length > 0
     ? Math.min(...item.product_options.filter(o => o.price_cents).map(o => o.price_cents!))
     : null
@@ -48,7 +55,7 @@ export function ItemCard({ item, isOwner, onClaim }: ItemCardProps) {
   }
 
   return (
-    <Card className={isFullyClaimed ? 'opacity-60' : ''}>
+    <Card className="border-2 border-[rgb(232,133,176)] bg-[rgb(249,218,231)]">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <CardTitle className="text-lg line-clamp-2">{item.title}</CardTitle>
@@ -60,6 +67,16 @@ export function ItemCard({ item, isOwner, onClaim }: ItemCardProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                {item.claimed_quantity > 0 && (
+                  <DropdownMenuItem
+                    onClick={handleUnclaim}
+                    disabled={isDeleting}
+                    className="text-slate-950"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Unclaim
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
                   onClick={handleDelete}
                   disabled={isDeleting}
@@ -100,7 +117,7 @@ export function ItemCard({ item, isOwner, onClaim }: ItemCardProps) {
       </CardContent>
       <CardFooter className="flex gap-2">
         {item.custom_url && (
-          <Button variant="outline" size="sm" asChild>
+          <Button variant="outline" size="sm" asChild className="opacity-100">
             <a href={item.custom_url} target="_blank" rel="noopener noreferrer">
               <ExternalLink className="mr-2 h-4 w-4" />
               View

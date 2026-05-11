@@ -40,7 +40,7 @@ export function PublicItemCard({ item, registrySlug, claimed }: PublicItemCardPr
 
   return (
     <>
-      <Card className={claimed ? 'opacity-60' : ''}>
+      <Card className="border-2 border-[rgb(232,133,176)] bg-[rgb(249,218,231)]">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg line-clamp-2">{item.title}</CardTitle>
         </CardHeader>
@@ -71,7 +71,7 @@ export function PublicItemCard({ item, registrySlug, claimed }: PublicItemCardPr
         </CardContent>
         <CardFooter className="flex gap-2 flex-wrap">
           {item.custom_url && (
-            <Button variant="outline" size="sm" asChild>
+            <Button variant="outline" size="sm" asChild className="opacity-100">
               <a href={item.custom_url} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="mr-2 h-4 w-4" />
                 View
