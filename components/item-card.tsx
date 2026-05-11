@@ -55,10 +55,10 @@ export function ItemCard({ item, isOwner, onClaim }: ItemCardProps) {
   }
 
   return (
-    <Card className="border-2 border-[rgb(232,133,176)] bg-[rgb(249,218,231)]">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <CardTitle className="text-lg line-clamp-2">{item.title}</CardTitle>
+    <Card className="!py-3 !gap-3 border-2 border-[rgb(232,133,176)] bg-[rgb(249,218,231)]">
+      <CardHeader className="pb-2 px-3">
+        <div className="flex items-start justify-between gap-2">
+          <CardTitle className="text-base leading-snug line-clamp-2">{item.title}</CardTitle>
           {isOwner && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -90,13 +90,13 @@ export function ItemCard({ item, isOwner, onClaim }: ItemCardProps) {
           )}
         </div>
       </CardHeader>
-      <CardContent className="pb-3">
+      <CardContent className="pb-2 px-3">
         {item.description && (
-          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+          <p className="text-sm text-muted-foreground mb-2 leading-normal">
             {item.description}
           </p>
         )}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1">
           {item.desired_quantity > 1 && (
             <Badge variant="secondary">
               {item.claimed_quantity}/{item.desired_quantity} claimed
@@ -115,7 +115,7 @@ export function ItemCard({ item, isOwner, onClaim }: ItemCardProps) {
           )}
         </div>
       </CardContent>
-      <CardFooter className="flex gap-2">
+      <CardFooter className="flex gap-1 flex-wrap items-center px-3">
         {item.custom_url && (
           <Button variant="outline" size="sm" asChild className="opacity-100">
             <a href={item.custom_url} target="_blank" rel="noopener noreferrer">
