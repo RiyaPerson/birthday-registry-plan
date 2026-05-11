@@ -55,7 +55,7 @@ export function ItemCard({ item, isOwner, onClaim }: ItemCardProps) {
   }
 
   return (
-    <Card className="!py-3 !gap-3 border-2 border-[rgb(232,133,176)] bg-[rgb(249,218,231)]">
+    <Card className="!py-3 !gap-3 border-[6px] border-[rgb(232,133,176)] bg-[rgb(249,218,231)]">
       <CardHeader className="pb-2 px-3">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="text-base leading-snug line-clamp-2">{item.title}</CardTitle>

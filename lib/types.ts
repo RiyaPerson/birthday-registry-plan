@@ -49,6 +49,7 @@ export interface GiftClaim {
   item_id: string
   product_option_id: string | null
   quantity: number
+  user_id: string | null
   claimer_name: string | null
   claimer_email: string | null
   message: string | null
@@ -59,6 +60,7 @@ export interface RegistryItemWithDetails extends RegistryItem {
   product_options: ProductOption[]
   gift_claims: GiftClaim[]
   claimed_quantity: number
+  current_user_claim_quantity?: number
 }
 
 export interface RegistryWithItems extends Registry {

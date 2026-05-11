@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import {
@@ -39,7 +39,10 @@ export function ClaimDialog({
   const [quantity, setQuantity] = useState('1')
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [user, setUser] = useState<any>(null)
+  const [isSessionLoading, setIsSessionLoading] = useState(true)
   const router = useRouter()
+  const pathname = usePathname()
 
   const remainingQuantity = item.desired_quantity - item.claimed_quantity
 
@@ -48,11 +51,18 @@ export function ClaimDialog({
     setIsLoading(true)
 
     const supabase = createClient()
+    const { data: { session, user: currentUser } } = await supabase.auth.getSession()
+
+    if (!currentUser) {
+      router.push(`/auth/login?redirectTo=${encodeURIComponent(pathname)}`)
+      return
+    }
 
     const { error } = await supabase.from('gift_claims').insert({
       item_id: item.id,
       product_option_id: productOptionId,
       quantity: parseInt(quantity) || 1,
+      user_id: currentUser.id,
       claimer_name: name || null,
       claimer_email: email || null,
       message: message || null,
@@ -74,6 +84,17 @@ export function ClaimDialog({
     setIsLoading(false)
   }
 
+  useEffect(() => {
+    const loadSession = async () => {
+      const supabase = createClient()
+      const { data: { session, user } } = await supabase.auth.getSession()
+      setUser(user)
+      setIsSessionLoading(false)
+    }
+
+    loadSession()
+  }, [])
+
   if (isSuccess) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -86,6 +107,35 @@ export function ClaimDialog({
             <p className="mt-2 text-center text-muted-foreground">
               Thank you for claiming this gift. The wishlist owner will see it&apos;s been claimed but won&apos;t know who until after the event.
             </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
+  if (isSessionLoading) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <div className="flex flex-col items-center justify-center py-8">
+            <p className="text-sm text-muted-foreground">Checking sign-in status…</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
+  if (!user) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <div className="flex flex-col items-center justify-center py-8 gap-4 text-center">
+            <p className="text-sm text-muted-foreground">
+              You must sign in to claim gifts and manage your own claims.
+            </p>
+            <Button onClick={() => router.push(`/auth/login?redirectTo=${encodeURIComponent(pathname)}`)}>
+              Sign in to continue
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

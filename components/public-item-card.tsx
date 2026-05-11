@@ -15,9 +15,10 @@ interface PublicItemCardProps {
   item: RegistryItemWithDetails
   registrySlug: string
   claimed?: boolean
+  currentUserClaimQuantity?: number
 }
 
-export function PublicItemCard({ item, registrySlug, claimed }: PublicItemCardProps) {
+export function PublicItemCard({ item, registrySlug, claimed, currentUserClaimQuantity = 0 }: PublicItemCardProps) {
   const router = useRouter()
   const [claimDialogOpen, setClaimDialogOpen] = useState(false)
   const [isUnclaiming, setIsUnclaiming] = useState(false)
@@ -43,16 +44,25 @@ export function PublicItemCard({ item, registrySlug, claimed }: PublicItemCardPr
   }
 
   const handleUnclaim = async () => {
-    setIsUnclaiming(true)
     const supabase = createClient()
-    await supabase.from('gift_claims').delete().eq('item_id', item.id)
+    const { data: { session, user } } = await supabase.auth.getSession()
+
+    if (!user) {
+      router.push('/auth/login')
+      return
+    }
+
+    setIsUnclaiming(true)
+    await supabase.from('gift_claims').delete()
+      .eq('item_id', item.id)
+      .eq('user_id', user.id)
     setIsUnclaiming(false)
     router.refresh()
   }
 
   return (
     <>
-      <Card className="!py-3 !gap-3 border-2 border-[rgb(232,133,176)] bg-[rgb(249,218,231)]">
+      <Card className="!py-3 !gap-3 border-[6px] border-[rgb(232,133,176)] bg-[rgb(249,218,231)]">
         <CardHeader className="pb-2 px-3">
           <CardTitle className="text-base leading-snug line-clamp-2">{item.title}</CardTitle>
         </CardHeader>
@@ -107,7 +117,7 @@ export function PublicItemCard({ item, registrySlug, claimed }: PublicItemCardPr
               Claim
             </Button>
           )}
-          {claimed && (
+          {currentUserClaimQuantity > 0 && (
             <Button size="sm" variant="outline" onClick={handleUnclaim} disabled={isUnclaiming}>
               Unclaim
             </Button>
