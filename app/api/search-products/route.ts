@@ -72,14 +72,21 @@ Focus on finding products that best match the user's preferences for brand, pric
     }
 
     // Create the registry item
+    const itemData: any = {
+      registry_id: registryId,
+      title: searchResults.item_title,
+      description: searchResults.item_description,
+      desired_quantity: 1,
+    }
+
+    // Set image from first product option if available
+    if (searchResults.products && searchResults.products.length > 0 && searchResults.products[0].image_url) {
+      itemData.image_url = searchResults.products[0].image_url
+    }
+
     const { data: item, error: itemError } = await supabase
       .from('registry_items')
-      .insert({
-        registry_id: registryId,
-        title: searchResults.item_title,
-        description: searchResults.item_description,
-        desired_quantity: 1,
-      })
+      .insert(itemData)
       .select()
       .single()
 

@@ -51,7 +51,22 @@ export function ItemCard({ item, isOwner, onClaim }: ItemCardProps) {
     <Card className={isFullyClaimed ? 'opacity-60' : ''}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
-          <CardTitle className="text-lg line-clamp-2">{item.title}</CardTitle>
+          <div className="flex-1">
+            {item.image_url && (
+              <div className="mb-3">
+                <img
+                  src={item.image_url}
+                  alt={item.title}
+                  className="w-full h-32 object-cover rounded-md"
+                  onError={(e) => {
+                    // Hide image if it fails to load
+                    e.currentTarget.style.display = 'none'
+                  }}
+                />
+              </div>
+            )}
+            <CardTitle className="text-lg line-clamp-2">{item.title}</CardTitle>
+          </div>
           {isOwner && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

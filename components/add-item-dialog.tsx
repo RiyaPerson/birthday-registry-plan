@@ -37,13 +37,39 @@ export function AddItemDialog({ registryId }: AddItemDialogProps) {
     setIsLoading(true)
     const supabase = createClient()
 
-    const { error } = await supabase.from('registry_items').insert({
+    let itemData: any = {
       registry_id: registryId,
       title,
       description: description || null,
       desired_quantity: parseInt(quantity) || 1,
       custom_url: customUrl || null,
-    })
+    }
+
+    // Extract metadata from URL if provided
+    if (customUrl) {
+      try {
+        const response = await fetch('/api/extract-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: customUrl }),
+        })
+
+        if (response.ok) {
+          const metadata = await response.json()
+          if (metadata.title && !title) {
+            itemData.title = metadata.title
+          }
+          if (metadata.image_url) {
+            itemData.image_url = metadata.image_url
+          }
+          // Note: Price extraction for custom URLs could be added here if needed
+        }
+      } catch (error) {
+        console.error('Failed to extract URL metadata:', error)
+      }
+    }
+
+    const { error } = await supabase.from('registry_items').insert(itemData)
 
     if (!error) {
       resetForm()
