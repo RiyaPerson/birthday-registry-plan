@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import {
@@ -39,32 +39,35 @@ export function ClaimDialog({
   const [quantity, setQuantity] = useState('1')
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
-  const [user, setUser] = useState<any>(null)
-  const [isSessionLoading, setIsSessionLoading] = useState(true)
+  const [emailError, setEmailError] = useState('')
   const router = useRouter()
-  const pathname = usePathname()
 
   const remainingQuantity = item.desired_quantity - item.claimed_quantity
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setEmailError('')
+
+    if (!email || !email.trim()) {
+      setEmailError('Email is required to claim a gift')
+      return
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setEmailError('Please enter a valid email address')
+      return
+    }
+
     setIsLoading(true)
 
     const supabase = createClient()
-    const { data: { session, user: currentUser } } = await supabase.auth.getSession()
-
-    if (!currentUser) {
-      router.push(`/auth/login?redirectTo=${encodeURIComponent(pathname)}`)
-      return
-    }
 
     const { error } = await supabase.from('gift_claims').insert({
       item_id: item.id,
       product_option_id: productOptionId,
       quantity: parseInt(quantity) || 1,
-      user_id: currentUser.id,
       claimer_name: name || null,
-      claimer_email: email || null,
+      claimer_email: email.toLowerCase(),
       message: message || null,
     })
 
@@ -79,21 +82,12 @@ export function ClaimDialog({
         setQuantity('1')
         router.refresh()
       }, 2000)
+    } else {
+      setEmailError('Failed to claim gift. Please try again.')
     }
 
     setIsLoading(false)
   }
-
-  useEffect(() => {
-    const loadSession = async () => {
-      const supabase = createClient()
-      const { data: { session, user } } = await supabase.auth.getSession()
-      setUser(user)
-      setIsSessionLoading(false)
-    }
-
-    loadSession()
-  }, [])
 
   if (isSuccess) {
     return (
@@ -105,37 +99,8 @@ export function ClaimDialog({
             </div>
             <h3 className="mt-4 text-xl font-semibold">Gift Claimed!</h3>
             <p className="mt-2 text-center text-muted-foreground">
-              Thank you for claiming this gift. The wishlist owner will see it&apos;s been claimed but won&apos;t know who until after the event.
+              Thank you for claiming this gift. Use your email to unclaim it later.
             </p>
-          </div>
-        </DialogContent>
-      </Dialog>
-    )
-  }
-
-  if (isSessionLoading) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md">
-          <div className="flex flex-col items-center justify-center py-8">
-            <p className="text-sm text-muted-foreground">Checking sign-in status…</p>
-          </div>
-        </DialogContent>
-      </Dialog>
-    )
-  }
-
-  if (!user) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md">
-          <div className="flex flex-col items-center justify-center py-8 gap-4 text-center">
-            <p className="text-sm text-muted-foreground">
-              You must sign in to claim gifts and manage your own claims.
-            </p>
-            <Button onClick={() => router.push(`/auth/login?redirectTo=${encodeURIComponent(pathname)}`)}>
-              Sign in to continue
-            </Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -166,17 +131,20 @@ export function ClaimDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="claim-email">Your Email (optional)</Label>
+            <Label htmlFor="claim-email">Your Email <span className="text-destructive">*</span></Label>
             <Input
               id="claim-email"
               type="email"
               placeholder="you@example.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value)
+                setEmailError('')
+              }}
+              required
             />
-            <p className="text-xs text-muted-foreground">
-              For your records only
-            </p>
+            {emailError && <p className="text-xs text-destructive">{emailError}</p>}
+            {!emailError && <p className="text-xs text-muted-foreground">You'll need this to unclaim the gift</p>}
           </div>
 
           {item.desired_quantity > 1 && remainingQuantity > 1 && (

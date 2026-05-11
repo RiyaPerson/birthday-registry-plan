@@ -34,8 +34,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function PublicRegistryPage({ params }: PageProps) {
   const { slug } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  const currentUserId = user?.id ?? null
 
   const { data: registry } = await supabase
     .from('registries')
@@ -79,16 +77,11 @@ export default async function PublicRegistryPage({ params }: PageProps) {
     const itemOptions = productOptions?.filter((o: ProductOption) => o.item_id === item.id) || []
     const itemClaims = claims?.filter((c: GiftClaim) => c.item_id === item.id) || []
     const claimedQuantity = itemClaims.reduce((sum: number, c: GiftClaim) => sum + c.quantity, 0)
-    const currentUserClaimQuantity = currentUserId
-      ? itemClaims.reduce((sum: number, c: GiftClaim) => c.user_id === currentUserId ? sum + c.quantity : sum, 0)
-      : 0
-
     return {
       ...item,
       product_options: itemOptions,
       gift_claims: itemClaims,
       claimed_quantity: claimedQuantity,
-      current_user_claim_quantity: currentUserClaimQuantity,
     }
   }) || []
 
@@ -149,7 +142,6 @@ export default async function PublicRegistryPage({ params }: PageProps) {
                   key={item.id}
                   item={item}
                   registrySlug={slug}
-                  currentUserClaimQuantity={item.current_user_claim_quantity}
                 />
               ))}
             </div>
@@ -163,13 +155,7 @@ export default async function PublicRegistryPage({ params }: PageProps) {
             </h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 opacity-60">
               {claimedItems.map((item) => (
-                <PublicItemCard
-                  key={item.id}
-                  item={item}
-                  registrySlug={slug}
-                  claimed
-                  currentUserClaimQuantity={item.current_user_claim_quantity}
-                />
+                <PublicItemCard key={item.id} item={item} registrySlug={slug} claimed />
               ))}
             </div>
           </section>

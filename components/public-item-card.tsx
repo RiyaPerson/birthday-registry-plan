@@ -6,6 +6,16 @@ import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { ExternalLink, Check, Gift } from 'lucide-react'
 import type { RegistryItemWithDetails } from '@/lib/types'
 import { ClaimDialog } from '@/components/claim-dialog'
@@ -15,13 +25,15 @@ interface PublicItemCardProps {
   item: RegistryItemWithDetails
   registrySlug: string
   claimed?: boolean
-  currentUserClaimQuantity?: number
 }
 
-export function PublicItemCard({ item, registrySlug, claimed, currentUserClaimQuantity = 0 }: PublicItemCardProps) {
+export function PublicItemCard({ item, registrySlug, claimed }: PublicItemCardProps) {
   const router = useRouter()
   const [claimDialogOpen, setClaimDialogOpen] = useState(false)
+  const [unclaimDialogOpen, setUnclaimDialogOpen] = useState(false)
+  const [unclaimEmail, setUnclaimEmail] = useState('')
   const [isUnclaiming, setIsUnclaiming] = useState(false)
+  const [unclaimError, setUnclaimError] = useState('')
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
 
   const remainingQuantity = item.desired_quantity - item.claimed_quantity
@@ -43,21 +55,32 @@ export function PublicItemCard({ item, registrySlug, claimed, currentUserClaimQu
     setClaimDialogOpen(true)
   }
 
-  const handleUnclaim = async () => {
-    const supabase = createClient()
-    const { data: { session, user } } = await supabase.auth.getSession()
+  const handleUnclaimSubmit = async () => {
+    setUnclaimError('')
 
-    if (!user) {
-      router.push('/auth/login')
+    if (!unclaimEmail || !unclaimEmail.trim()) {
+      setUnclaimError('Please enter your email')
       return
     }
 
     setIsUnclaiming(true)
-    await supabase.from('gift_claims').delete()
+    const supabase = createClient()
+
+    const { error } = await supabase
+      .from('gift_claims')
+      .delete()
       .eq('item_id', item.id)
-      .eq('user_id', user.id)
+      .eq('claimer_email', unclaimEmail.toLowerCase())
+
+    if (!error) {
+      setUnclaimDialogOpen(false)
+      setUnclaimEmail('')
+      router.refresh()
+    } else {
+      setUnclaimError('No claims found with this email for this item')
+    }
+
     setIsUnclaiming(false)
-    router.refresh()
   }
 
   return (
@@ -117,8 +140,8 @@ export function PublicItemCard({ item, registrySlug, claimed, currentUserClaimQu
               Claim
             </Button>
           )}
-          {currentUserClaimQuantity > 0 && (
-            <Button size="sm" variant="outline" onClick={handleUnclaim} disabled={isUnclaiming}>
+          {isFullyClaimed && (
+            <Button size="sm" variant="outline" onClick={() => setUnclaimDialogOpen(true)}>
               Unclaim
             </Button>
           )}
@@ -132,6 +155,41 @@ export function PublicItemCard({ item, registrySlug, claimed, currentUserClaimQu
         productOptionId={selectedProductId}
         registrySlug={registrySlug}
       />
+
+      <Dialog open={unclaimDialogOpen} onOpenChange={setUnclaimDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Unclaim this gift</DialogTitle>
+            <DialogDescription>
+              Enter the email you used to claim this gift
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="unclaim-email">Email</Label>
+              <Input
+                id="unclaim-email"
+                type="email"
+                placeholder="you@example.com"
+                value={unclaimEmail}
+                onChange={(e) => {
+                  setUnclaimEmail(e.target.value)
+                  setUnclaimError('')
+                }}
+              />
+              {unclaimError && <p className="text-xs text-destructive">{unclaimError}</p>}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setUnclaimDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="button" onClick={handleUnclaimSubmit} disabled={isUnclaiming}>
+              {isUnclaiming ? 'Unclaiming...' : 'Unclaim'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
