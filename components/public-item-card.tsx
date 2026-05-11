@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -60,24 +60,32 @@ export function PublicItemCard({ item, registrySlug, claimed }: PublicItemCardPr
 
     if (!unclaimEmail || !unclaimEmail.trim()) {
       setUnclaimError('Please enter your email')
+      setTimeout(() => setUnclaimError(''), 3000)
       return
     }
 
     setIsUnclaiming(true)
     const supabase = createClient()
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('gift_claims')
       .delete()
       .eq('item_id', item.id)
       .eq('claimer_email', unclaimEmail.toLowerCase())
+      .select()
 
-    if (!error) {
+    if (!error && data && data.length > 0) {
       setUnclaimDialogOpen(false)
       setUnclaimEmail('')
       router.refresh()
+    } else if (data && data.length === 0) {
+      const msg = 'No claims found with this email for this item'
+      setUnclaimError(msg)
+      setTimeout(() => setUnclaimError(''), 3000)
     } else {
-      setUnclaimError('No claims found with this email for this item')
+      const msg = error?.message || 'Failed to unclaim. Please try again.'
+      setUnclaimError(msg)
+      setTimeout(() => setUnclaimError(''), 3000)
     }
 
     setIsUnclaiming(false)
