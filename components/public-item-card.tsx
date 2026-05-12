@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -67,26 +66,33 @@ export function PublicItemCard({ item, registrySlug, claimed }: PublicItemCardPr
     }
 
     setIsUnclaiming(true)
-    const supabase = createClient()
 
-    const { data, error } = await supabase
-      .from('gift_claims')
-      .delete()
-      .eq('item_id', item.id)
-      .eq('claimer_email', normalizedEmail)
-      .select('*')
+    try {
+      const response = await fetch('/api/unclaim-gift', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          itemId: item.id,
+          claimerEmail: normalizedEmail,
+        }),
+      })
 
-    if (!error && data && data.length > 0) {
-      setUnclaimDialogOpen(false)
-      setUnclaimEmail('')
-      router.refresh()
-    } else if (!error && data && data.length === 0) {
-      const msg = 'No claims found with this email for this item'
-      setUnclaimError(msg)
-      setTimeout(() => setUnclaimError(''), 3000)
-    } else {
-      const msg = error?.message || 'Failed to unclaim. Please try again.'
-      setUnclaimError(msg)
+      const payload = await response.json().catch(() => ({}))
+
+      if (response.ok && payload?.success) {
+        setUnclaimDialogOpen(false)
+        setUnclaimEmail('')
+        router.refresh()
+      } else {
+        const msg =
+          typeof payload?.error === 'string'
+            ? payload.error
+            : 'Failed to unclaim. Please try again.'
+        setUnclaimError(msg)
+        setTimeout(() => setUnclaimError(''), 3000)
+      }
+    } catch {
+      setUnclaimError('Failed to unclaim. Please try again.')
       setTimeout(() => setUnclaimError(''), 3000)
     }
 
