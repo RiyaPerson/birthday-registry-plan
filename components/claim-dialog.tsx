@@ -14,7 +14,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Check, Copy } from 'lucide-react'
+import { Check } from 'lucide-react'
 import type { RegistryItemWithDetails } from '@/lib/types'
 
 interface ClaimDialogProps {
@@ -22,7 +22,6 @@ interface ClaimDialogProps {
   onOpenChange: (open: boolean) => void
   item: RegistryItemWithDetails
   productOptionId: string | null
-  registrySlug: string
 }
 
 export function ClaimDialog({
@@ -30,19 +29,29 @@ export function ClaimDialog({
   onOpenChange,
   item,
   productOptionId,
-  registrySlug,
 }: ClaimDialogProps) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
   const [quantity, setQuantity] = useState('1')
-  const [unclaimCode, setUnclaimCode] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [formError, setFormError] = useState('')
   const router = useRouter()
 
   const remainingQuantity = item.desired_quantity - item.claimed_quantity
+
+  const handleDialogOpenChange = (next: boolean) => {
+    if (!next) {
+      setName('')
+      setEmail('')
+      setMessage('')
+      setQuantity('1')
+      setFormError('')
+      setIsSuccess(false)
+    }
+    onOpenChange(next)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -79,8 +88,7 @@ export function ClaimDialog({
 
       if (!response.ok) {
         setFormError(data?.error || 'Failed to claim gift. Please try again.')
-      } else if (data?.success && data?.unclaimCode) {
-        setUnclaimCode(data.unclaimCode)
+      } else if (data?.success) {
         setIsSuccess(true)
       } else {
         setFormError('Failed to claim gift. Please try again.')
@@ -95,45 +103,22 @@ export function ClaimDialog({
 
   if (isSuccess) {
     return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={handleDialogOpenChange}>
         <DialogContent className="sm:max-w-md">
           <div className="flex flex-col items-center justify-center py-8 space-y-4">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
               <Check className="h-8 w-8 text-green-600" />
             </div>
             <div className="space-y-2 text-center">
-              <h3 className="text-xl font-semibold">Gift Claimed!</h3>
-              <p className="text-muted-foreground">
-                Your claim is saved. Use the code below if you need to unclaim this gift.
+              <h3 className="text-xl font-semibold">Gift claimed!</h3>
+              <p className="text-muted-foreground text-sm">
+                To change your mind later, use Unclaim on this list and enter the same email you used here.
               </p>
-              <div className="rounded-2xl border border-primary/20 bg-primary/10 px-4 py-3">
-                <p className="text-sm text-muted-foreground">Unclaim Code</p>
-                <div className="mt-2 flex items-center justify-between gap-2">
-                  <span className="font-mono text-lg tracking-[0.2em] uppercase">
-                    {unclaimCode}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigator.clipboard.writeText(unclaimCode)}
-                  >
-                    <Copy className="mr-2 h-4 w-4" />
-                    Copy
-                  </Button>
-                </div>
-              </div>
             </div>
             <Button
               type="button"
               onClick={() => {
-                onOpenChange(false)
-                setIsSuccess(false)
-                setName('')
-                setEmail('')
-                setMessage('')
-                setQuantity('1')
-                setUnclaimCode('')
+                handleDialogOpenChange(false)
                 router.refresh()
               }}
             >
@@ -146,7 +131,7 @@ export function ClaimDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Claim this gift</DialogTitle>
@@ -181,13 +166,8 @@ export function ClaimDialog({
               }}
               required
             />
-            <p className="text-xs text-muted-foreground">You'll need this email and your unclaim code to unclaim the gift</p>
-          </div>
-
-          <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4">
-            <p className="text-sm font-semibold">Unclaim Code</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              After claiming, you will get a unique code. Save it so you can unclaim this gift later.
+            <p className="text-xs text-muted-foreground">
+              Use the same email if you unclaim this gift from this page later.
             </p>
           </div>
 
@@ -225,7 +205,7 @@ export function ClaimDialog({
 
           {formError && <p className="text-sm text-destructive">{formError}</p>}
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => handleDialogOpenChange(false)}>
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>

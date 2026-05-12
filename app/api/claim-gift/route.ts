@@ -1,13 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 
-function generateUnclaimCode() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-  const values = crypto.getRandomValues(new Uint8Array(8))
-  return Array.from(values)
-    .map((value) => chars[value % chars.length])
-    .join('')
-}
-
 export async function POST(req: Request) {
   try {
     const { itemId, productOptionId, quantity, claimerName, claimerEmail, message } = await req.json()
@@ -45,25 +37,17 @@ export async function POST(req: Request) {
       return Response.json({ error: 'Registry not found or not public' }, { status: 404 })
     }
 
-    // Generate unclaim code
-    const unclaimCode = generateUnclaimCode()
+    const { error: claimError } = await supabase.from('gift_claims').insert({
+      item_id: itemId,
+      product_option_id: productOptionId || null,
+      quantity,
+      claimer_name: claimerName || null,
+      claimer_email: claimerEmail.trim().toLowerCase(),
+      unclaim_code: null,
+      message: message || null,
+    })
 
-    // Create the gift claim
-    const { data: claim, error: claimError } = await supabase
-      .from('gift_claims')
-      .insert({
-        item_id: itemId,
-        product_option_id: productOptionId || null,
-        quantity,
-        claimer_name: claimerName || null,
-        claimer_email: claimerEmail.trim().toLowerCase(),
-        unclaim_code: unclaimCode,
-        message: message || null,
-      })
-      .select()
-      .single()
-
-    if (claimError || !claim) {
+    if (claimError) {
       console.error('Claim error:', claimError)
       return Response.json(
         { error: claimError?.message || 'Failed to create claim' },
@@ -71,10 +55,7 @@ export async function POST(req: Request) {
       )
     }
 
-    return Response.json({
-      success: true,
-      unclaimCode: claim.unclaim_code,
-    })
+    return Response.json({ success: true })
   } catch (error) {
     console.error('Claim endpoint error:', error)
     return Response.json({ error: 'Server error' }, { status: 500 })

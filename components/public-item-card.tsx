@@ -22,11 +22,10 @@ import { PublicProductOptions } from '@/components/public-product-options'
 
 interface PublicItemCardProps {
   item: RegistryItemWithDetails
-  registrySlug: string
   claimed?: boolean
 }
 
-export function PublicItemCard({ item, registrySlug, claimed }: PublicItemCardProps) {
+export function PublicItemCard({ item, claimed }: PublicItemCardProps) {
   const router = useRouter()
   const [claimDialogOpen, setClaimDialogOpen] = useState(false)
   const [unclaimDialogOpen, setUnclaimDialogOpen] = useState(false)
@@ -169,7 +168,6 @@ export function PublicItemCard({ item, registrySlug, claimed }: PublicItemCardPr
         onOpenChange={setClaimDialogOpen}
         item={item}
         productOptionId={selectedProductId}
-        registrySlug={registrySlug}
       />
 
       <Dialog open={unclaimDialogOpen} onOpenChange={setUnclaimDialogOpen}>

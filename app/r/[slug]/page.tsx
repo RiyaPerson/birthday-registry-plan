@@ -138,11 +138,7 @@ export default async function PublicRegistryPage({ params }: PageProps) {
             </h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {unclaimedItems.map((item) => (
-                <PublicItemCard
-                  key={item.id}
-                  item={item}
-                  registrySlug={slug}
-                />
+                <PublicItemCard key={item.id} item={item} />
               ))}
             </div>
           </section>
@@ -155,7 +151,7 @@ export default async function PublicRegistryPage({ params }: PageProps) {
             </h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 opacity-60">
               {claimedItems.map((item) => (
-                <PublicItemCard key={item.id} item={item} registrySlug={slug} claimed />
+                <PublicItemCard key={item.id} item={item} claimed />
               ))}
             </div>
           </section>
