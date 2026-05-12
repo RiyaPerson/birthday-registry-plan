@@ -33,6 +33,7 @@ export function ClaimDialog({
   registrySlug,
 }: ClaimDialogProps) {
   const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
   const [quantity, setQuantity] = useState('1')
   const [unclaimCode, setUnclaimCode] = useState('')
@@ -47,6 +48,17 @@ export function ClaimDialog({
     e.preventDefault()
 
     setFormError('')
+
+    if (!email || !email.trim()) {
+      setFormError('Email is required to claim a gift')
+      return
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setFormError('Please enter a valid email address')
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -58,6 +70,7 @@ export function ClaimDialog({
           productOptionId,
           quantity: parseInt(quantity) || 1,
           claimerName: name || null,
+          claimerEmail: email.trim().toLowerCase(),
           message: message || null,
         }),
       })
@@ -117,6 +130,7 @@ export function ClaimDialog({
                 onOpenChange(false)
                 setIsSuccess(false)
                 setName('')
+                setEmail('')
                 setMessage('')
                 setQuantity('1')
                 setUnclaimCode('')
@@ -152,6 +166,22 @@ export function ClaimDialog({
             <p className="text-xs text-muted-foreground">
               Hidden until after the event date
             </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="claim-email">Your Email <span className="text-destructive">*</span></Label>
+            <Input
+              id="claim-email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value)
+                setFormError('')
+              }}
+              required
+            />
+            <p className="text-xs text-muted-foreground">You'll need this email and your unclaim code to unclaim the gift</p>
           </div>
 
           <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4">

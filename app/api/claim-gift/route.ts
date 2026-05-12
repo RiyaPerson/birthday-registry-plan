@@ -10,10 +10,14 @@ function generateUnclaimCode() {
 
 export async function POST(req: Request) {
   try {
-    const { itemId, productOptionId, quantity, claimerName, message } = await req.json()
+    const { itemId, productOptionId, quantity, claimerName, claimerEmail, message } = await req.json()
 
     if (!itemId || !quantity) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    if (!claimerEmail) {
+      return Response.json({ error: 'Email is required' }, { status: 400 })
     }
 
     const supabase = await createClient()
@@ -52,7 +56,7 @@ export async function POST(req: Request) {
         product_option_id: productOptionId || null,
         quantity,
         claimer_name: claimerName || null,
-        claimer_email: null,
+        claimer_email: claimerEmail.trim().toLowerCase(),
         unclaim_code: unclaimCode,
         message: message || null,
       })

@@ -31,6 +31,7 @@ export function PublicItemCard({ item, registrySlug, claimed }: PublicItemCardPr
   const router = useRouter()
   const [claimDialogOpen, setClaimDialogOpen] = useState(false)
   const [unclaimDialogOpen, setUnclaimDialogOpen] = useState(false)
+  const [unclaimEmail, setUnclaimEmail] = useState('')
   const [unclaimCode, setUnclaimCode] = useState('')
   const [isUnclaiming, setIsUnclaiming] = useState(false)
   const [unclaimError, setUnclaimError] = useState('')
@@ -59,9 +60,16 @@ export function PublicItemCard({ item, registrySlug, claimed }: PublicItemCardPr
     setUnclaimError('')
 
     const normalizedCode = unclaimCode.trim().toUpperCase()
+    const normalizedEmail = unclaimEmail.trim().toLowerCase()
 
     if (!normalizedCode) {
       setUnclaimError('Please enter your unclaim code')
+      setTimeout(() => setUnclaimError(''), 3000)
+      return
+    }
+
+    if (!normalizedEmail) {
+      setUnclaimError('Please enter your email')
       setTimeout(() => setUnclaimError(''), 3000)
       return
     }
@@ -74,14 +82,16 @@ export function PublicItemCard({ item, registrySlug, claimed }: PublicItemCardPr
       .delete()
       .eq('item_id', item.id)
       .eq('unclaim_code', normalizedCode)
+      .eq('claimer_email', normalizedEmail)
       .select('*')
 
     if (!error && data && data.length > 0) {
       setUnclaimDialogOpen(false)
       setUnclaimCode('')
+      setUnclaimEmail('')
       router.refresh()
     } else if (!error && data && data.length === 0) {
-      const msg = 'No claims found with this code for this item'
+      const msg = 'No claims found with this code and email for this item'
       setUnclaimError(msg)
       setTimeout(() => setUnclaimError(''), 3000)
     } else {
@@ -175,6 +185,19 @@ export function PublicItemCard({ item, registrySlug, claimed }: PublicItemCardPr
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="unclaim-email">Email</Label>
+              <Input
+                id="unclaim-email"
+                type="email"
+                placeholder="you@example.com"
+                value={unclaimEmail}
+                onChange={(e) => {
+                  setUnclaimEmail(e.target.value)
+                  setUnclaimError('')
+                }}
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="unclaim-code">Unclaim Code</Label>
               <Input
